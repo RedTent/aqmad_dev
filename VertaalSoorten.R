@@ -1,5 +1,5 @@
 VertaalSoorten <- function(monsters, type_data , path_databases){
-  
+  require(tidyverse)
   #monsters <- controlelist[[1]]
   #type_data <- soortgroep
   #path_databases <- "data\\"
@@ -49,51 +49,51 @@ VertaalSoorten <- function(monsters, type_data , path_databases){
 
   #Check if the monsters is filled
   for (nr in seq_along(monsters)) {
-    
+
     #Check specname
-    if("specname" %in% names(monsters[[nr]])){
-      #Check if reftype is filled
-      if(TRUE %in% !(is.na(monsters[[nr]][["specname"]])) & length(monsters[[nr]][["specname"]]) > 0){
-        
-        #check if specname exists in taxonname TWN list
-        link1 = match(monsters[[nr]][["specname"]],data_TWN$taxonname)
-        
-        #If not check if specname exists in taxoncode
-        link2 = match(monsters[[nr]][["specname"]][is.na(link1)],data_TWN$taxoncode)
-        
-        #If not check if specname exists in localname
-        link3 = match(monsters[[nr]][["specname"]][is.na(link1)][is.na(link2)],data_TWN$localname)
-        
-        if(TRUE %in% !(is.na(link2))){
-          
-          fid = c(fid,paste("Melding: in monster ",nr," zijn soortennamen vervangen ",
-                            "van 'taxoncode' naar 'taxonname' in kolom specname.", sep = ""))
-          
-          #Add link2
-          monsters[[nr]][["specname"]][is.na(link1)][!(is.na(link2))] = data_TWN$taxonname[link2][!(is.na(link2))]
-        }
-        
-        if(TRUE %in% !(is.na(link3))){
-          
-          fid = c(fid,paste("Melding: in monster ",nr," zijn soortennamen vervangen ",
-                            "van 'localname' naar 'taxonname' in kolom specname.", sep = ""))
-          
-          #Add link3
-          monsters[[nr]][["specname"]][is.na(link1)][is.na(link2)][!(is.na(link3))] = data_TWN$taxonname[link3][!(is.na(link3))]  
-        }
-        if(TRUE %in% is.na(link3)){
-          fid = c(fid,paste("WAARSCHUWING: in monster ",nr," zijn soortennamen aanwezig ",
-                            "die niet voorkomen in de TWN lijst onder taxonnaam, localname of taxoncode.",
-                            " Namen zijn: ",paste(monsters[[nr]][["specname"]][is.na(link1)][is.na(link2)][is.na(link3)],
-                                                  collapse = ", ", ".", sep = "")))
-        }
-      }
-    }else{
-      fid = c(fid,paste("ERROR: geen specname positie aangemaakt bij monster nr ", nr, ".", sep = ""))
+    if (!"specname" %in% names(monsters[[nr]])) {
+      fid = c(fid, paste0("ERROR: geen specname positie aangemaakt bij monster nr ", nr, "."))
       fatal_error = 1
-    }     
-  }
-  
-  }
-  return(list("Data" = monsters, "Comments" = fid, "Fatal_error" = fatal_error))
+    }
+
+    #Check if reftype is filled
+    if (any(!(is.na(monsters[[nr]][["specname"]]))) & nrow(monsters[[nr]]) > 0) {
+      
+      #check if specname exists in taxonname TWN list
+      link1 = match(monsters[[nr]][["specname"]],data_TWN$taxonname)
+      
+      #If not check if specname exists in taxoncode
+      link2 = match(monsters[[nr]][["specname"]][is.na(link1)],data_TWN$taxoncode)
+      
+      #If not check if specname exists in localname
+      link3 = match(monsters[[nr]][["specname"]][is.na(link1)][is.na(link2)],data_TWN$localname)
+      
+      if (TRUE %in% !(is.na(link2))) {
+        
+        fid = c(fid, paste0("Melding: in monster ",nr," zijn soortennamen vervangen ",
+                          "van 'taxoncode' naar 'taxonname' in kolom specname."))
+        
+        #Add link2
+        monsters[[nr]][["specname"]][is.na(link1)][!(is.na(link2))] <- data_TWN$taxonname[link2][!(is.na(link2))]
+      }
+      
+      if (any(!(is.na(link3)))) {
+        
+        fid = c(fid, paste0("Melding: in monster ",nr," zijn soortennamen vervangen ",
+                          "van 'localname' naar 'taxonname' in kolom specname."))
+        
+        #Add link3
+        monsters[[nr]][["specname"]][is.na(link1)][is.na(link2)][!(is.na(link3))] <- data_TWN$taxonname[link3][!(is.na(link3))]  
+      }
+      if (any(is.na(link3))) {
+        fid = c(fid, paste("WAARSCHUWING: in monster ",nr," zijn soortennamen aanwezig ",
+                          "die niet voorkomen in de TWN lijst onder taxonnaam, localname of taxoncode.",
+                          " Namen zijn: ",paste(monsters[[nr]][["specname"]][is.na(link1)][is.na(link2)][is.na(link3)],
+                                                collapse = ", ", ".", sep = "")))
+      }
+    }
+  }   
+
+
+return(list("Data" = monsters, "Comments" = fid, "Fatal_error" = fatal_error))
 }
